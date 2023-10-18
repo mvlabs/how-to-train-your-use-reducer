@@ -15,60 +15,79 @@ function useEnhancedReducer(
 }
 
 const enhancedReducer = (reducer, initialState, options) => {
-  // history past
-  let past = [];
-  // history future
-  let future = [];
+  // here we will store every state 
+  let pastHistory = [];
 
-  // added on state to known if canUndo, canRedo
-  const canDo = () => ({
-    canUndo: past.length > 0,
-    canRedo: future.length > 0,
+  // here 
+  let futureHistory = [];
+
+  // utility used to know if undo or redo are possible
+  const can = () => ({
+    undo: pastHistory.length > 0,
+    redo: futureHistory.length > 0,
   });
 
   return (state, action) => {
-    console.log("STATE", state, "ACTIOn", action, "PAST", past);
+    
+    console.log("STATE", state, "ACTION", action, "PAST", pastHistory);
+    
     // intercept UNDO
-    if (action.type === "UNDO") {
-      if (past.length <= 0) {
+    if (action.type === "UNDO") { 
+      
+      // if undo is not possible, no change is possible 
+      if (!can().undo) {
         return { ...state };
       }
 
-      const [newPresent, ...newPast] = past;
-      future = ensureArrayLimit(options?.historyLimit, [state, ...future]);
-      past = newPast;
+      // if undo is possible
+      // first element in the past is the new present
+      const [newPresent, ...newPast] = pastHistory;
+      // new future is current state plus old future
+      // avoid forward history (future states) to become endless
+      futureHistory = ensureHistoryLimit(options?.historyLimit, [state, ...futureHistory]);
+      // update past without its first element
+      pastHistory = newPast;
 
+      // return new state and utility
       return { ...newPresent, ...canDo() };
+    
     }
 
     // intercept REDO
+    // same as UNDO
     if (action.type === "REDO") {
-      if (future.length <= 0) {
+      if (!canDo().canRedo) {
         return { ...state };
       }
 
-      const [newPresent, ...newFuture] = future;
-      past = ensureArrayLimit(options?.historyLimit, [state, ...past]);
-      future = newFuture;
+      const [newPresent, ...newFuture] = futureHistory;
+      pastHistory = ensureHistoryLimit(options?.historyLimit, [state, ...pastHistory]);
+      futureHistory = newFuture;
 
       return { ...newPresent, ...canDo() };
     }
 
     // intercept RESET
     if (action.type === "RESET") {
-      past = [];
-      future = [];
+      // reset both histories and return
+      pastHistory = [];
+      futureHistory = [];
       return { ...initialState, ...canDo() };
     }
 
+    // if passing through with no action provided for this reducer
     // exec Reducer
     const present = reducer(state, action);
-    past = ensureArrayLimit(options?.historyLimit, [state, ...past]);
+
+    // update past history with present state
+    pastHistory = ensureHistoryLimit(options?.historyLimit, [state, ...pastHistory]);
+    // clear future history
+    futureHistory = [];
     return { ...present, ...canDo() };
   };
 };
 
-function ensureArrayLimit(limit, arr) {
+function ensureHistoryLimit(limit, arr) {
   const n = [...arr];
 
   if (!limit) return n;
