@@ -44,13 +44,13 @@ function useEnhanchedReducer<R extends EnhanchedReducer<any, any>, I>(
   UndoeableReducerDispatch<R>
 ] {
   const memoizedReducer = useCallback(
-    enhanchedReducer(reducer, initialState, options),
+    enhancedReducer(reducer, initialState, options),
     []
   );
   return useReducer(memoizedReducer, initializer(initializerArg));
 }
 
-const enhanchedReducer = <R extends EnhanchedReducer<any, any>>(
+const enhancedReducer = <R extends EnhanchedReducer<any, any>>(
   reducer: R,
   initialState: EnhanchedReducerState<R>,
   options?: UndoeableReducerOptions
@@ -66,8 +66,12 @@ const enhanchedReducer = <R extends EnhanchedReducer<any, any>>(
 
   return (
     state: EnhanchedReducerState<R> & UndoeableReducerState,
-    action: UndoeableReducerDispatch<R>
+    action: EnhanchedReducerAction<R> | UndoeableReducerAction
   ): EnhanchedReducerState<R> & UndoeableReducerState => {
+    if (!("type" in action)) {
+      return state;
+    }
+
     if (action.type === "UNDO") {
       if (past.length <= 0) {
         return { ...state };
@@ -98,7 +102,7 @@ const enhanchedReducer = <R extends EnhanchedReducer<any, any>>(
       return { ...initialState, ...canDo() };
     }
 
-    return reducer[action?.type ?? ""](state, action);
+    return reducer[(action as EnhanchedReducerAction<R>).type](state, action);
   };
 };
 

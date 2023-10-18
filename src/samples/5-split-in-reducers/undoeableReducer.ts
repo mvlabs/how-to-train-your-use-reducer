@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
-  EnhanchedReducer,
-  EnhanchedReducerAction,
-  EnhanchedReducerState,
+  EnhancedReducer,
+  EnhancedReducerAction,
+  EnhancedReducerState,
 } from "./useEnhancedReducer";
 
 type UndoeableReducerState = { canUndo?: boolean; canRedo?: boolean };
@@ -25,17 +25,17 @@ interface UndoeableReducerOptions {
  * UNDO: -1 in past
  * RESET: initial state
  */
-const undoeableReducer = <R extends EnhanchedReducer<any, any>>(
+const undoeableReducer = <R extends EnhancedReducer<any, any>>(
   reducer: R,
-  initialState: EnhanchedReducerState<R>,
+  initialState: EnhancedReducerState<R>,
   options?: UndoeableReducerOptions
-): EnhanchedReducer<
-  EnhanchedReducerState<R> & UndoeableReducerState,
-  EnhanchedReducerAction<R> | UndoeableReducerAction
+): EnhancedReducer<
+  EnhancedReducerState<R> & UndoeableReducerState,
+  EnhancedReducerAction<R> | UndoeableReducerAction
 > => {
   // history
-  let past: Array<EnhanchedReducerState<R>> = [];
-  let future: Array<EnhanchedReducerState<R>> = [];
+  let past: Array<EnhancedReducerState<R>> = [];
+  let future: Array<EnhancedReducerState<R>> = [];
 
   const canDo = () => ({
     canUndo: past.length > 0,
@@ -46,10 +46,10 @@ const undoeableReducer = <R extends EnhanchedReducer<any, any>>(
   // update past on reducer updates
   for (const [key, value] of Object.entries(reducer)) {
     (newReducer[key] as any) = (
-      state: EnhanchedReducerState<R>,
-      action: EnhanchedReducerAction<R>
-    ): EnhanchedReducerState<R> => {
-      const present = value(state, action) as EnhanchedReducerState<R>;
+      state: EnhancedReducerState<R>,
+      action: EnhancedReducerAction<R>
+    ): EnhancedReducerState<R> => {
+      const present = value(state, action) as EnhancedReducerState<R>;
       past = ensureArrayLimit(options?.historyLimit, [state, ...past]);
       return { ...present, ...canDo() };
     };

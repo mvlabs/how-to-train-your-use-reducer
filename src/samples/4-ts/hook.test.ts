@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
-import { EnhanchedReducer, useEnhanchedReducer } from "./hook";
+import { EnhanchedReducer, useEnhanchedReducer } from "./hook-undo";
 
-type CounterState = { count: number; errorMessage?: string };
+type CounterState = { count: number };
 type CounterAction = { type: "increment" } | { type: "decrement" };
 
 const counterReducer: EnhanchedReducer<CounterState, CounterAction> = {
@@ -12,9 +12,15 @@ const counterReducer: EnhanchedReducer<CounterState, CounterAction> = {
 test("useEnhanchedReducer", () => {
   const { result } = renderHook(
     (count: number) => {
-      return useEnhanchedReducer(counterReducer, count, (initial) => ({
-        count: initial,
-      }));
+      return useEnhanchedReducer(
+        counterReducer,
+        count,
+        (initial) => ({
+          count: initial,
+        }),
+        { count },
+        { historyLimit: 10 }
+      );
     },
     { initialProps: 0 }
   );
@@ -30,6 +36,12 @@ test("useEnhanchedReducer", () => {
   // -1
   act(() => {
     result.current[1]({ type: "decrement" });
+  });
+  expect(result.current[0].count).toBe(0);
+
+  // 1
+  act(() => {
+    result.current[1]({ type: "UNDO" });
   });
   expect(result.current[0].count).toBe(0);
 });

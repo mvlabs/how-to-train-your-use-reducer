@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
-  EnhanchedReducer,
-  EnhanchedReducerAction,
-  EnhanchedReducerState,
-} from "../6-split-in-reducers/useEnhancedReducer";
+  EnhancedReducer,
+  EnhancedReducerAction,
+  EnhancedReducerState,
+} from "../5-split-in-reducers/useEnhancedReducer";
 
-export interface StepsBaseAction<R extends EnhanchedReducer<any, any>> {
-  callback: (state: EnhanchedReducerState<R>) => EnhanchedReducerState<R>;
+export interface StepsBaseAction<R extends EnhancedReducer<any, any>> {
+  callback: (state: EnhancedReducerState<R>) => EnhancedReducerState<R>;
   /**
    * default = whitelist
    */
-  actions?: { [Act in EnhanchedReducerAction<R>["type"]]?: boolean };
+  actions?: { [Act in EnhancedReducerAction<R>["type"]]?: boolean };
 }
-type Before<R extends EnhanchedReducer<any, any>> = StepsBaseAction<R>;
-type After<R extends EnhanchedReducer<any, any>> = StepsBaseAction<R>;
+type Before<R extends EnhancedReducer<any, any>> = StepsBaseAction<R>;
+type After<R extends EnhancedReducer<any, any>> = StepsBaseAction<R>;
 
-interface Options<R extends EnhanchedReducer<any, any>> {
+interface Options<R extends EnhancedReducer<any, any>> {
   /**
    * Must be a pure function.
    *
@@ -30,7 +30,7 @@ interface Options<R extends EnhanchedReducer<any, any>> {
   after?: After<R>[];
 }
 
-const beforeAfterReducer = <R extends EnhanchedReducer<any, any>>(
+const beforeAfterReducer = <R extends EnhancedReducer<any, any>>(
   reducer: R,
   options?: Options<R>
 ): R => {
@@ -39,11 +39,11 @@ const beforeAfterReducer = <R extends EnhanchedReducer<any, any>>(
   // update past on reducer updates
   for (const [key, value] of Object.entries(reducer)) {
     (newReducer[key] as any) = (
-      state: EnhanchedReducerState<R>,
-      action: EnhanchedReducerAction<R>
-    ): EnhanchedReducerState<R> => {
+      state: EnhancedReducerState<R>,
+      action: EnhancedReducerAction<R>
+    ): EnhancedReducerState<R> => {
       let newState = state;
-      const type = action.type as EnhanchedReducerAction<R>["type"];
+      const type = action.type as EnhancedReducerAction<R>["type"];
 
       // before
       for (const before of options?.before ?? []) {

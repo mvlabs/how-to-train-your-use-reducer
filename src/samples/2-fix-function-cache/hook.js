@@ -1,12 +1,12 @@
 import { useReducer, useCallback } from "react";
+import { enhancedReducer } from "../1-first-attempt/hook-undo";
 
-function useEnhancedReducer(reducer, initializerArg, initializer) {
-  const memoizedReducer = useCallback(enhancedReducer(reducer), []);
+function useEnhancedReducer(reducer, initializerArg, initializer, options) {
+  const memoizedReducer = useCallback(
+    enhancedReducer(reducer, initializer(initializerArg), options),
+    []
+  );
   return useReducer(memoizedReducer, initializer(initializerArg));
 }
-
-const enhancedReducer = (reducer) => (state, action) => {
-  return reducer[action?.type ?? ""](state, action);
-};
 
 export default useEnhancedReducer;
