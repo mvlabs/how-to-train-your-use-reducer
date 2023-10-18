@@ -15,10 +15,10 @@ function useEnhancedReducer(
 }
 
 const enhancedReducer = (reducer, initialState, options) => {
-  // here we will store every state 
+  // store every state  passing by
   let pastHistory = [];
 
-  // here 
+  // store actions undone
   let futureHistory = [];
 
   // utility used to know if undo or redo are possible
@@ -43,7 +43,7 @@ const enhancedReducer = (reducer, initialState, options) => {
       // first element in the past is the new present
       const [newPresent, ...newPast] = pastHistory;
       // new future is current state plus old future
-      // avoid forward history (future states) to become endless
+      // avoid forward history (future states) to become endless via options
       futureHistory = ensureHistoryLimit(options?.historyLimit, [state, ...futureHistory]);
       // update past without its first element
       pastHistory = newPast;
