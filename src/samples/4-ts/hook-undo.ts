@@ -4,20 +4,20 @@ import { useCallback, useReducer } from "react";
 /**
  * ts create an object iterating for every different type of Action
  */
-type EnhanchedReducer<State, Actions extends { type: string }> = {
+type EnhancedReducer<State, Actions extends { type: string }> = {
   [Act in Actions["type"]]: (
     state: State,
     action: Actions extends { type: Act } ? Actions : never
   ) => State;
 };
 
-type EnhanchedReducerState<R extends EnhanchedReducer<any, any>> =
-  R extends EnhanchedReducer<infer S, any> ? S : never;
-type EnhanchedReducerAction<R extends EnhanchedReducer<any, any>> =
-  R extends EnhanchedReducer<any, infer A> ? A : never;
+type EnhancedReducerState<R extends EnhancedReducer<any, any>> =
+  R extends EnhancedReducer<infer S, any> ? S : never;
+type EnhancedReducerAction<R extends EnhancedReducer<any, any>> =
+  R extends EnhancedReducer<any, infer A> ? A : never;
 
-type EnhanchedReducerDispatch<R extends EnhanchedReducer<any, any>> = (
-  action: EnhanchedReducerAction<R>
+type EnhancedReducerDispatch<R extends EnhancedReducer<any, any>> = (
+  action: EnhancedReducerAction<R>
 ) => void;
 
 interface UndoeableReducerOptions {
@@ -29,18 +29,18 @@ type UndoeableReducerAction =
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "RESET" };
-type UndoeableReducerDispatch<R extends EnhanchedReducer<any, any>> = (
-  action: EnhanchedReducerAction<R> | UndoeableReducerAction
+type UndoeableReducerDispatch<R extends EnhancedReducer<any, any>> = (
+  action: EnhancedReducerAction<R> | UndoeableReducerAction
 ) => void;
 
-function useEnhanchedReducer<R extends EnhanchedReducer<any, any>, I>(
+function useEnhancedReducer<R extends EnhancedReducer<any, any>, I>(
   reducer: R,
   initializerArg: I,
-  initializer: (arg: I) => EnhanchedReducerState<R>,
-  initialState: EnhanchedReducerState<R>,
+  initializer: (arg: I) => EnhancedReducerState<R>,
+  initialState: EnhancedReducerState<R>,
   options?: UndoeableReducerOptions
 ): [
-  EnhanchedReducerState<R> & UndoeableReducerState,
+  EnhancedReducerState<R> & UndoeableReducerState,
   UndoeableReducerDispatch<R>
 ] {
   const memoizedReducer = useCallback(
@@ -50,14 +50,14 @@ function useEnhanchedReducer<R extends EnhanchedReducer<any, any>, I>(
   return useReducer(memoizedReducer, initializer(initializerArg));
 }
 
-const enhancedReducer = <R extends EnhanchedReducer<any, any>>(
+const enhancedReducer = <R extends EnhancedReducer<any, any>>(
   reducer: R,
-  initialState: EnhanchedReducerState<R>,
+  initialState: EnhancedReducerState<R>,
   options?: UndoeableReducerOptions
 ) => {
   // history
-  let past: Array<EnhanchedReducerState<R>> = [];
-  let future: Array<EnhanchedReducerState<R>> = [];
+  let past: Array<EnhancedReducerState<R>> = [];
+  let future: Array<EnhancedReducerState<R>> = [];
 
   const canDo = () => ({
     canUndo: past.length > 0,
@@ -65,9 +65,9 @@ const enhancedReducer = <R extends EnhanchedReducer<any, any>>(
   });
 
   return (
-    state: EnhanchedReducerState<R> & UndoeableReducerState,
-    action: EnhanchedReducerAction<R> | UndoeableReducerAction
-  ): EnhanchedReducerState<R> & UndoeableReducerState => {
+    state: EnhancedReducerState<R> & UndoeableReducerState,
+    action: EnhancedReducerAction<R> | UndoeableReducerAction
+  ): EnhancedReducerState<R> & UndoeableReducerState => {
     if (!("type" in action)) {
       return state;
     }
@@ -102,7 +102,7 @@ const enhancedReducer = <R extends EnhanchedReducer<any, any>>(
       return { ...initialState, ...canDo() };
     }
 
-    return reducer[(action as EnhanchedReducerAction<R>).type](state, action);
+    return reducer[(action as EnhancedReducerAction<R>).type](state, action);
   };
 };
 
@@ -122,9 +122,9 @@ function ensureArrayLimit<T>(limit: number | undefined, arr: T[]): T[] {
 }
 
 export type {
-  EnhanchedReducer,
-  EnhanchedReducerState,
-  EnhanchedReducerAction,
-  EnhanchedReducerDispatch,
+  EnhancedReducer,
+  EnhancedReducerState,
+  EnhancedReducerAction,
+  EnhancedReducerDispatch,
 };
-export { useEnhanchedReducer };
+export { useEnhancedReducer };

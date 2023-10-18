@@ -1,18 +1,18 @@
 import { act, renderHook } from "@testing-library/react";
-import { EnhanchedReducer, useEnhanchedReducer } from "./hook-undo";
+import { EnhancedReducer, useEnhancedReducer } from "./hook-undo";
 
 type CounterState = { count: number };
 type CounterAction = { type: "increment" } | { type: "decrement" };
 
-const counterReducer: EnhanchedReducer<CounterState, CounterAction> = {
+const counterReducer: EnhancedReducer<CounterState, CounterAction> = {
   increment: (state) => ({ ...state, count: state.count + 1 }),
   decrement: (state) => ({ ...state, count: state.count - 1 }),
 };
 
-test("useEnhanchedReducer", () => {
+test("useEnhancedReducer", () => {
   const { result } = renderHook(
     (count: number) => {
-      return useEnhanchedReducer(
+      return useEnhancedReducer(
         counterReducer,
         count,
         (initial) => ({
