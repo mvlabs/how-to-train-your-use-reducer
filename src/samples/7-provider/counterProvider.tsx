@@ -28,7 +28,7 @@ interface Props {
  * provide on deep components counterReducer
  * use [useCounter] and [useDispatchCounter]
  */
-function TaskProvider(props: Props) {
+function CounterProvider(props: Props) {
   const [state, dispatch] = useEnhancedReducer(
     counterReducer,
     props.initialCount ?? 0,
@@ -55,4 +55,4 @@ function useDispatchCounter() {
 }
 
 export { useCounter, useDispatchCounter };
-export default TaskProvider;
+export default CounterProvider;
