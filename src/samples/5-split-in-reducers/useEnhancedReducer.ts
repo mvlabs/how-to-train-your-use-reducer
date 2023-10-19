@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useReducer } from "react";
 
-// TODO: create provider for useEnhancedReducer
-
-// TODO: create useSelector with useEnhancedReducer or with state
-
-// TODO: middleware reducer
-
 type ErrorMessage = { errorMessage?: string };
 
 type EnhancedReducer<State, Actions extends { type: string }> = {

@@ -59,7 +59,7 @@ const enhancedReducer = <R extends EnhancedReducer<any, any>>(
   let past: Array<EnhancedReducerState<R>> = [];
   let future: Array<EnhancedReducerState<R>> = [];
 
-  const canDo = () => ({
+  const can = () => ({
     canUndo: past.length > 0,
     canRedo: future.length > 0,
   });
@@ -73,7 +73,7 @@ const enhancedReducer = <R extends EnhancedReducer<any, any>>(
     }
 
     if (action.type === "UNDO") {
-      if (past.length <= 0) {
+      if (!can().canUndo) {
         return { ...state };
       }
 
@@ -81,11 +81,11 @@ const enhancedReducer = <R extends EnhancedReducer<any, any>>(
       future = ensureArrayLimit(options?.historyLimit, [state, ...future]);
       past = newPast;
 
-      return { ...newPresent, ...canDo() };
+      return { ...newPresent, ...can() };
     }
 
     if (action.type === "REDO") {
-      if (future.length <= 0) {
+      if (!can().canRedo) {
         return { ...state };
       }
 
@@ -93,16 +93,21 @@ const enhancedReducer = <R extends EnhancedReducer<any, any>>(
       past = ensureArrayLimit(options?.historyLimit, [state, ...past]);
       future = newFuture;
 
-      return { ...newPresent, ...canDo() };
+      return { ...newPresent, ...can() };
     }
 
     if (action.type === "RESET") {
       past = [];
       future = [];
-      return { ...initialState, ...canDo() };
+      return { ...initialState, ...can() };
     }
 
-    return reducer[(action as EnhancedReducerAction<R>).type](state, action);
+    const present = reducer[(action as EnhancedReducerAction<R>).type](
+      state,
+      action
+    );
+    past = ensureArrayLimit(options?.historyLimit, [state, ...past]);
+    return { ...present, ...can() };
   };
 };
 

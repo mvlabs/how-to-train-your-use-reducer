@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
-import { EnhancedReducer, useEnhancedReducer } from "./hook-undo";
+import { EnhancedReducer, useEnhancedReducer } from "./useEnhancedReducer";
+import undoeableReducer from "./undoeableReducer";
 
 type CounterState = { count: number };
 type CounterAction = { type: "increment" } | { type: "decrement" };
@@ -13,13 +14,11 @@ test("useEnhancedReducer", () => {
   const { result } = renderHook(
     (count: number) => {
       return useEnhancedReducer(
-        counterReducer,
+        undoeableReducer(counterReducer, { count }, { historyLimit: 10 }),
         count,
         (initial) => ({
           count: initial,
-        }),
-        { count },
-        { historyLimit: 10 }
+        })
       );
     },
     { initialProps: 0 }

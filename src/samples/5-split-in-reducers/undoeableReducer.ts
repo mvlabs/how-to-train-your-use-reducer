@@ -37,21 +37,24 @@ const undoeableReducer = <R extends EnhancedReducer<any, any>>(
   let past: Array<EnhancedReducerState<R>> = [];
   let future: Array<EnhancedReducerState<R>> = [];
 
-  const canDo = () => ({
+  const can = () => ({
     canUndo: past.length > 0,
     canRedo: future.length > 0,
   });
 
   const newReducer = { ...reducer };
-  // update past on reducer updates
+
+  // reducer is now an object, key: action["type"]: (state,action) => state
+  // clone reducer and override callbacks
   for (const [key, value] of Object.entries(reducer)) {
     (newReducer[key] as any) = (
       state: EnhancedReducerState<R>,
       action: EnhancedReducerAction<R>
     ): EnhancedReducerState<R> => {
       const present = value(state, action) as EnhancedReducerState<R>;
+      // update past on reducer updates
       past = ensureArrayLimit(options?.historyLimit, [state, ...past]);
-      return { ...present, ...canDo() };
+      return { ...present, ...can() };
     };
   }
 
@@ -65,7 +68,7 @@ const undoeableReducer = <R extends EnhancedReducer<any, any>>(
       future = ensureArrayLimit(options?.historyLimit, [state, ...future]);
       past = newPast;
 
-      return { ...newPresent, ...canDo() };
+      return { ...newPresent, ...can() };
     },
     REDO: (state, _) => {
       if (future.length <= 0) {
@@ -76,12 +79,12 @@ const undoeableReducer = <R extends EnhancedReducer<any, any>>(
       past = ensureArrayLimit(options?.historyLimit, [state, ...past]);
       future = newFuture;
 
-      return { ...newPresent, ...canDo() };
+      return { ...newPresent, ...can() };
     },
     RESET: (_, __) => {
       past = [];
       future = [];
-      return { ...initialState, ...canDo() };
+      return { ...initialState, ...can() };
     },
     ...newReducer,
   };

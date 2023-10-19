@@ -16,77 +16,75 @@ function useEnhancedReducer(
 
 const enhancedReducer = (reducer, initialState, options) => {
   // store every state  passing by
-  let pastHistory = [];
+  let past = [];
 
   // store actions undone
-  let futureHistory = [];
+  let future = [];
 
   // utility used to know if undo or redo are possible
   const can = () => ({
-    undo: pastHistory.length > 0,
-    redo: futureHistory.length > 0,
+    canUndo: past.length > 0,
+    canRedo: future.length > 0,
   });
 
   return (state, action) => {
-    
-    console.log("STATE", state, "ACTION", action, "PAST", pastHistory);
-    
+    // ignore action without key type
+    if (!("type" in action)) {
+      return state;
+    }
+
     // intercept UNDO
-    if (action.type === "UNDO") { 
-      
-      // if undo is not possible, no change is possible 
-      if (!can().undo) {
+    if (action.type === "UNDO") {
+      // if undo is not possible, no change is possible
+      if (!can().canUndo) {
         return { ...state };
       }
 
       // if undo is possible
       // first element in the past is the new present
-      const [newPresent, ...newPast] = pastHistory;
+      const [newPresent, ...newPast] = past;
       // new future is current state plus old future
-      // avoid forward history (future states) to become endless via options
-      futureHistory = ensureHistoryLimit(options?.historyLimit, [state, ...futureHistory]);
+      future = ensureHistoryLimit(options?.historyLimit, [state, ...future]);
       // update past without its first element
-      pastHistory = newPast;
+      past = newPast;
 
       // return new state and utility
-      return { ...newPresent, ...canDo() };
-    
+      return { ...newPresent, ...can() };
     }
 
     // intercept REDO
     // same as UNDO
     if (action.type === "REDO") {
-      if (!canDo().canRedo) {
+      if (!can().canRedo) {
         return { ...state };
       }
 
-      const [newPresent, ...newFuture] = futureHistory;
-      pastHistory = ensureHistoryLimit(options?.historyLimit, [state, ...pastHistory]);
-      futureHistory = newFuture;
+      const [newPresent, ...newFuture] = future;
+      past = ensureHistoryLimit(options?.historyLimit, [state, ...past]);
+      future = newFuture;
 
-      return { ...newPresent, ...canDo() };
+      return { ...newPresent, ...can() };
     }
 
     // intercept RESET
     if (action.type === "RESET") {
-      // reset both histories and return
-      pastHistory = [];
-      futureHistory = [];
-      return { ...initialState, ...canDo() };
+      // reset both histories and return initial state
+      past = [];
+      future = [];
+      return { ...initialState, ...can() };
     }
 
-    // if passing through with no action provided for this reducer
-    // exec Reducer
+    // reducer actions
     const present = reducer(state, action);
-
     // update past history with present state
-    pastHistory = ensureHistoryLimit(options?.historyLimit, [state, ...pastHistory]);
-    // clear future history
-    futureHistory = [];
-    return { ...present, ...canDo() };
+    past = ensureHistoryLimit(options?.historyLimit, [state, ...past]);
+    return { ...present, ...can() };
   };
 };
 
+/**
+ *  avoid array (past/future history) to become endless via limit
+ */
 function ensureHistoryLimit(limit, arr) {
   const n = [...arr];
 
